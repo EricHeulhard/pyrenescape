@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function DragPuzzle({
   puzzle,
@@ -10,37 +10,66 @@ export default function DragPuzzle({
 
   const isLocked = initialDrops !== null;
 
-  // 👉 DRAG START
+  // 👉 START DRAG
   function startDrag(id) {
     if (isLocked) return;
     setDraggedItem(id);
   }
 
-  // 👉 DROP
-  function dropOnZone(zoneId) {
+  // 👉 TOUCH MOVE GLOBAL (IMPORTANT)
+  useEffect(() => {
+    function handleTouchMove(e) {
+      if (!draggedItem) return;
+
+      const touch = e.touches[0];
+      const el = document.elementFromPoint(
+        touch.clientX,
+        touch.clientY
+      );
+
+      if (el?.dataset?.zone) {
+        // highlight possible (optionnel)
+      }
+    }
+
+    function handleTouchEnd(e) {
+      if (!draggedItem) return;
+
+      const touch = e.changedTouches[0];
+      const el = document.elementFromPoint(
+        touch.clientX,
+        touch.clientY
+      );
+
+      if (el?.dataset?.zone) {
+        setDrops((prev) => ({
+          ...prev,
+          [el.dataset.zone]: draggedItem,
+        }));
+      }
+
+      setDraggedItem(null);
+    }
+
+    document.addEventListener("touchmove", handleTouchMove);
+    document.addEventListener("touchend", handleTouchEnd);
+
+    return () => {
+      document.removeEventListener("touchmove", handleTouchMove);
+      document.removeEventListener("touchend", handleTouchEnd);
+    };
+  }, [draggedItem]);
+
+  // 👉 DESKTOP DROP
+  function handleDrop(zoneId) {
     if (isLocked || !draggedItem) return;
 
     setDrops((prev) => ({
       ...prev,
-      [zoneId]: draggedItem
+      [zoneId]: draggedItem,
     }));
 
     setDraggedItem(null);
-  }
-
-  // 👉 TOUCH MOVE (mobile)
-  function handleTouchMove(e) {
-    if (!draggedItem) return;
-
-    const touch = e.touches[0];
-    const el = document.elementFromPoint(
-      touch.clientX,
-      touch.clientY
-    );
-
-    if (el?.dataset?.zone) {
-      dropOnZone(el.dataset.zone);
-    }
   }
 
   // 👉 VALIDATION
@@ -69,11 +98,10 @@ export default function DragPuzzle({
             draggable={!isLocked}
             onDragStart={() => startDrag(item.id)}
             onTouchStart={() => startDrag(item.id)}
-            onTouchMove={handleTouchMove}
             style={{
               width: "80px",
               margin: "10px",
-              cursor: "grab"
+              opacity: draggedItem === item.id ? 0.5 : 1,
             }}
           />
         ))}
@@ -86,14 +114,15 @@ export default function DragPuzzle({
             key={zone.id}
             data-zone={zone.id}
             onDragOver={(e) => e.preventDefault()}
-            onDrop={() => dropOnZone(zone.id)}
+            onDrop={() => handleDrop(zone.id)}
             style={{
               width: "120px",
               height: "120px",
               backgroundColor: zone.color,
               display: "flex",
               alignItems: "center",
-              justifyContent: "center"
+              justifyContent: "center",
+              border: "2px solid black",
             }}
           >
             {drops[zone.id] && (
@@ -112,9 +141,7 @@ export default function DragPuzzle({
 
       <br />
 
-      <button onClick={checkSolution}>
-        Valider
-      </button>
+      <button onClick={checkSolution}>Valider</button>
     </div>
   );
 }
