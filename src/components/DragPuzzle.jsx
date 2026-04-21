@@ -5,37 +5,49 @@ export default function DragPuzzle({
   onSuccess,
   initialDrops = null,
 }) {
-  // zoneId -> plantId
   const [drops, setDrops] = useState(initialDrops || {});
   const [draggedItem, setDraggedItem] = useState(null);
 
   const isLocked = initialDrops !== null;
 
-  // 👉 drag start
-  function handleDragStart(itemId) {
+  // 👉 DRAG START
+  function startDrag(id) {
     if (isLocked) return;
-    setDraggedItem(itemId);
+    setDraggedItem(id);
   }
 
-  // 👉 drop sur une zone
-  function handleDrop(zoneId) {
+  // 👉 DROP
+  function dropOnZone(zoneId) {
     if (isLocked || !draggedItem) return;
 
     setDrops((prev) => ({
       ...prev,
-      [zoneId]: draggedItem, // 🔥 REMPLACEMENT GARANTI
+      [zoneId]: draggedItem
     }));
 
     setDraggedItem(null);
   }
 
-  // 👉 validation
-  function checkSolution() {
-    if (isLocked) return;
+  // 👉 TOUCH MOVE (mobile)
+  function handleTouchMove(e) {
+    if (!draggedItem) return;
 
+    const touch = e.touches[0];
+    const el = document.elementFromPoint(
+      touch.clientX,
+      touch.clientY
+    );
+
+    if (el?.dataset?.zone) {
+      dropOnZone(el.dataset.zone);
+    }
+  }
+
+  // 👉 VALIDATION
+  function checkSolution() {
     const isCorrect = puzzle.items
-      .filter((item) => item.correct) // ignore distracteurs
-      .every((item) => drops[item.correct] === item.id);
+      .filter((i) => i.correct)
+      .every((i) => drops[i.correct] === i.id);
 
     if (isCorrect) {
       onSuccess(drops);
@@ -45,65 +57,45 @@ export default function DragPuzzle({
   }
 
   return (
-    <div
-      style={{
-        opacity: isLocked ? 0.4 : 1,
-        textAlign: "center",
-      }}
-    >
-      {/* QUESTION */}
+    <div style={{ textAlign: "center" }}>
       <h2>{puzzle.question}</h2>
 
-      {/* DESCRIPTION */}
-      {puzzle.description && (
-        <p style={{ fontStyle: "italic", color: "#666" }}>
-          {puzzle.description}
-        </p>
-      )}
-
-      {/* ITEMS (PLANTES) */}
-      <div style={{ marginBottom: "20px" }}>
+      {/* ITEMS */}
+      <div>
         {puzzle.items.map((item) => (
           <img
             key={item.id}
             src={item.image}
             draggable={!isLocked}
-            onDragStart={() => handleDragStart(item.id)}
+            onDragStart={() => startDrag(item.id)}
+            onTouchStart={() => startDrag(item.id)}
+            onTouchMove={handleTouchMove}
             style={{
               width: "80px",
               margin: "10px",
-              cursor: isLocked ? "default" : "grab",
-              opacity: draggedItem === item.id ? 0.5 : 1,
+              cursor: "grab"
             }}
           />
         ))}
       </div>
 
-      {/* ZONES (COULEURS / POTS) */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          gap: "20px",
-        }}
-      >
+      {/* ZONES */}
+      <div style={{ display: "flex", justifyContent: "center", gap: "20px" }}>
         {puzzle.zones.map((zone) => (
           <div
             key={zone.id}
-            onDragOver={(e) => !isLocked && e.preventDefault()}
-            onDrop={() => handleDrop(zone.id)}
+            data-zone={zone.id}
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={() => dropOnZone(zone.id)}
             style={{
               width: "120px",
               height: "120px",
               backgroundColor: zone.color,
               display: "flex",
               alignItems: "center",
-              justifyContent: "center",
-              border: "2px solid black",
-              borderRadius: "10px",
+              justifyContent: "center"
             }}
           >
-            {/* PLANTE DANS LA ZONE */}
             {drops[zone.id] && (
               <img
                 src={
@@ -120,8 +112,7 @@ export default function DragPuzzle({
 
       <br />
 
-      {/* VALIDATION */}
-      <button onClick={checkSolution} disabled={isLocked}>
+      <button onClick={checkSolution}>
         Valider
       </button>
     </div>
