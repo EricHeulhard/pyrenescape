@@ -16,10 +16,12 @@ export default function DragPuzzle({
     setDraggedItem(id);
   }
 
-  // 👉 TOUCH MOVE GLOBAL (IMPORTANT)
+  // 👉 GESTION MOBILE (touch global)
   useEffect(() => {
     function handleTouchMove(e) {
       if (!draggedItem) return;
+
+      e.preventDefault(); // 🔥 bloque le scroll
 
       const touch = e.touches[0];
       const el = document.elementFromPoint(
@@ -28,7 +30,7 @@ export default function DragPuzzle({
       );
 
       if (el?.dataset?.zone) {
-        // highlight possible (optionnel)
+        // tu peux ajouter un highlight ici si tu veux
       }
     }
 
@@ -44,14 +46,17 @@ export default function DragPuzzle({
       if (el?.dataset?.zone) {
         setDrops((prev) => ({
           ...prev,
-          [el.dataset.zone]: draggedItem,
+          [el.dataset.zone]: draggedItem, // ✔ remplace si déjà présent
         }));
       }
 
       setDraggedItem(null);
     }
 
-    document.addEventListener("touchmove", handleTouchMove);
+    document.addEventListener("touchmove", handleTouchMove, {
+      passive: false, // 🔥 indispensable
+    });
+
     document.addEventListener("touchend", handleTouchEnd);
 
     return () => {
@@ -86,10 +91,15 @@ export default function DragPuzzle({
   }
 
   return (
-    <div style={{ textAlign: "center" }}>
+    <div
+      style={{
+        textAlign: "center",
+        touchAction: "none", // 🔥 bloque gestes navigateur
+      }}
+    >
       <h2>{puzzle.question}</h2>
 
-      {/* ITEMS */}
+      {/* ITEMS À DRAG */}
       <div>
         {puzzle.items.map((item) => (
           <img
@@ -102,13 +112,21 @@ export default function DragPuzzle({
               width: "80px",
               margin: "10px",
               opacity: draggedItem === item.id ? 0.5 : 1,
+              cursor: "grab",
             }}
           />
         ))}
       </div>
 
-      {/* ZONES */}
-      <div style={{ display: "flex", justifyContent: "center", gap: "20px" }}>
+      {/* ZONES DE DROP */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          gap: "20px",
+          marginTop: "20px",
+        }}
+      >
         {puzzle.zones.map((zone) => (
           <div
             key={zone.id}
@@ -123,6 +141,7 @@ export default function DragPuzzle({
               alignItems: "center",
               justifyContent: "center",
               border: "2px solid black",
+              borderRadius: "8px",
             }}
           >
             {drops[zone.id] && (
@@ -141,7 +160,9 @@ export default function DragPuzzle({
 
       <br />
 
-      <button onClick={checkSolution}>Valider</button>
+      <button onClick={checkSolution}>
+        Valider
+      </button>
     </div>
   );
 }
