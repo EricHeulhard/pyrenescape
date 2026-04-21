@@ -7,31 +7,33 @@ export default function DragPuzzle({
 }) {
   const [drops, setDrops] = useState(initialDrops || {});
   const [draggedItem, setDraggedItem] = useState(null);
+  const [ghostPos, setGhostPos] = useState({ x: 0, y: 0 });
 
   const isLocked = initialDrops !== null;
 
-  // 👉 START DRAG
-  function startDrag(id) {
+  function startDrag(id, e) {
     if (isLocked) return;
+
     setDraggedItem(id);
+
+    if (e.touches) {
+      const touch = e.touches[0];
+      setGhostPos({ x: touch.clientX, y: touch.clientY });
+    }
   }
 
-  // 👉 GESTION MOBILE (touch global)
   useEffect(() => {
     function handleTouchMove(e) {
       if (!draggedItem) return;
 
-      e.preventDefault(); // 🔥 bloque le scroll
+      e.preventDefault();
 
       const touch = e.touches[0];
-      const el = document.elementFromPoint(
-        touch.clientX,
-        touch.clientY
-      );
 
-      if (el?.dataset?.zone) {
-        // tu peux ajouter un highlight ici si tu veux
-      }
+      setGhostPos({
+        x: touch.clientX,
+        y: touch.clientY,
+      });
     }
 
     function handleTouchEnd(e) {
@@ -46,7 +48,7 @@ export default function DragPuzzle({
       if (el?.dataset?.zone) {
         setDrops((prev) => ({
           ...prev,
-          [el.dataset.zone]: draggedItem, // ✔ remplace si déjà présent
+          [el.dataset.zone]: draggedItem,
         }));
       }
 
@@ -54,7 +56,7 @@ export default function DragPuzzle({
     }
 
     document.addEventListener("touchmove", handleTouchMove, {
-      passive: false, // 🔥 indispensable
+      passive: false,
     });
 
     document.addEventListener("touchend", handleTouchEnd);
@@ -65,7 +67,6 @@ export default function DragPuzzle({
     };
   }, [draggedItem]);
 
-  // 👉 DESKTOP DROP
   function handleDrop(zoneId) {
     if (isLocked || !draggedItem) return;
 
@@ -77,7 +78,6 @@ export default function DragPuzzle({
     setDraggedItem(null);
   }
 
-  // 👉 VALIDATION
   function checkSolution() {
     const isCorrect = puzzle.items
       .filter((i) => i.correct)
@@ -91,42 +91,29 @@ export default function DragPuzzle({
   }
 
   return (
-    <div
-      style={{
-        textAlign: "center",
-        touchAction: "none", // 🔥 bloque gestes navigateur
-      }}
-    >
+    <div style={{ textAlign: "center", touchAction: "none" }}>
       <h2>{puzzle.question}</h2>
 
-      {/* ITEMS À DRAG */}
+      {/* ITEMS */}
       <div>
         {puzzle.items.map((item) => (
           <img
             key={item.id}
             src={item.image}
             draggable={!isLocked}
-            onDragStart={() => startDrag(item.id)}
-            onTouchStart={() => startDrag(item.id)}
+            onDragStart={() => setDraggedItem(item.id)}
+            onTouchStart={(e) => startDrag(item.id, e)}
             style={{
               width: "80px",
               margin: "10px",
-              opacity: draggedItem === item.id ? 0.5 : 1,
-              cursor: "grab",
+              opacity: draggedItem === item.id ? 0.3 : 1,
             }}
           />
         ))}
       </div>
 
-      {/* ZONES DE DROP */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          gap: "20px",
-          marginTop: "20px",
-        }}
-      >
+      {/* ZONES */}
+      <div style={{ display: "flex", justifyContent: "center", gap: "20px" }}>
         {puzzle.zones.map((zone) => (
           <div
             key={zone.id}
@@ -141,7 +128,6 @@ export default function DragPuzzle({
               alignItems: "center",
               justifyContent: "center",
               border: "2px solid black",
-              borderRadius: "8px",
             }}
           >
             {drops[zone.id] && (
@@ -157,6 +143,25 @@ export default function DragPuzzle({
           </div>
         ))}
       </div>
+
+      {/* 👻 GHOST */}
+      {draggedItem && (
+        <img
+          src={
+            puzzle.items.find((i) => i.id === draggedItem)?.image
+          }
+          style={{
+            position: "fixed",
+            left: ghostPos.x - 40,
+            top: ghostPos.y - 40,
+            width: "80px",
+            pointerEvents: "none",
+            opacity: 0.8,
+            transform: "scale(1.1)",
+            zIndex: 9999,
+          }}
+        />
+      )}
 
       <br />
 
