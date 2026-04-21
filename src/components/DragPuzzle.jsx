@@ -40,9 +40,12 @@ export default function DragPuzzle({
       if (!draggedItem) return;
 
       const touch = e.changedTouches[0];
+      const offsetX = 10;
+      const offsetY = 10;
+
       const el = document.elementFromPoint(
-        touch.clientX,
-        touch.clientY
+        touch.clientX + offsetX,
+        touch.clientY + offsetY
       );
 
       if (el?.dataset?.zone) {
