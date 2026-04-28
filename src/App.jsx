@@ -4,6 +4,7 @@ import PuzzleRenderer from "./components/PuzzleRenderer";
 import PuzzleHistoryItem from "./components/PuzzleHistoryItem";
 import GameComplete from "./components/GameComplete";
 import pyrenees from "./assets/pyrenees.jpg";
+import HintGenerator from "./components/HintGenerator";
 
 export default function App() {
 
@@ -61,6 +62,7 @@ export default function App() {
       </h1>
     </div>
 
+      <HintGenerator />
       {/* HISTORIQUE GRISÉ */}
       {completed.map((item) => {
         const puzzle = puzzles.find((p) => p.id === item.id);

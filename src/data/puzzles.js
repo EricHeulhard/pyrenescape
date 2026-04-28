@@ -1,8 +1,8 @@
-import rose from "../assets/rose.jpg";
-import sunflower from "../assets/sunflower.jpg";
-import leaf from "../assets/leaf.jpg";
-import fern from "../assets/fern.jpg"
-import lavender from "../assets/lavender.jpg"
+import Laurier from "../assets/Laurier.jpg";
+import Ail from "../assets/Ail.jpg";
+import Persil from "../assets/Persil.jpg";
+import Espelette from "../assets/Espelette.jpg"
+import Thym from "../assets/Thym.jpg"
 
 const puzzles = [
   {
@@ -17,7 +17,7 @@ const puzzles = [
     type: "text",
     description: "En cas de forte chute de neige, prudence est de mise",
     question: "Retrouvez moi",
-    answer: "Avalanche"
+    answer: "avalanche"
   },
   {
     id: 3,
@@ -26,19 +26,22 @@ const puzzles = [
     question: "Associe chaque plante à la bonne couleur",
 
     zones: [
-      { id: "red", color: "red", label: "Pot rouge" },
       { id: "yellow", color: "yellow", label: "Pot jaune" },
+      { id: "green", color: "green", label: "Pot vert" },
+      { id: "red", color: "red", label: "Pot rouge" },
+      { id: "blue", color: "blue", label: "Pot bleu" },
     ],
 
     items: [
       // 🌿 BONNES PLANTES 
-      { id: "rose", image: rose, correct: "red", real: true },
-      { id: "sunflower", image: sunflower, correct: "yellow", real: true },
+      { id: "Laurier", image: Laurier, correct: "red", real: true },
+      { id: "Ail", image: Ail, correct: "yellow", real: true },
+        { id: "Persil", image: Persil, correct: "blue", real: true },
+      { id: "Espelette", image: Espelette, correct: "green", real: true },
 
       // ❌ DISTRACTEURS 
-      { id: "leaf", image: leaf, correct: null, real: false },
-      { id: "fern", image: fern, correct: null, real: false },
-      { id: "lavender", image: lavender, correct: null, real: false }
+
+      { id: "Thym", image: Thym, correct: null, real: false }
     ]
   },
   {
